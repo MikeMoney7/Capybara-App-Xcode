@@ -1,158 +1,257 @@
 import SwiftUI
 
-struct CapybaraInstagramApp: View {
-    @State private var selectedTab = 0
-
-    var body: some View {
-        TabView(selection: $selectedTab) {
-            HomeScreen()
-                .tabItem {
-                    Image(systemName: "house.fill")
-                    Text("Home")
-                }
-                .tag(0)
-
-            PostView()
-                .tabItem {
-                    Image(systemName: "plus.square.fill")
-                    Text("Post")
-                }
-                .tag(1)
-
-            SettingsView()
-                .tabItem {
-                    Image(systemName: "gear")
-                    Text("Settings")
-                }
-                .tag(2)
-        }
-        .accentColor(.green)
-    }
+// User Data Model
+class UserData: ObservableObject {
+  @Published var firstName = ""
+  @Published var lastName = ""
+  @Published var dateOfBirth = Date()
+  @Published var email = ""
+  @Published var password = ""
 }
 
-struct HomeScreen: View {
-    var body: some View {
-        ScrollView {
-            LazyVStack {
-                ForEach(0..<10) { _ in
-                    CapybaraPostView()
-                }
-            }
+// Registration View
+struct RegistrationView: View {
+  @EnvironmentObject var userData: UserData
+  @State private var showingHome = false
+
+  var body: some View {
+    NavigationView {
+      VStack {
+        TextField("First Name", text: $userData.firstName)
+          .padding()
+          .background(Color.gray.opacity(0.2))
+          .cornerRadius(8)
+
+        TextField("Last Name", text: $userData.lastName)
+          .padding()
+          .background(Color.gray.opacity(0.2))
+          .cornerRadius(8)
+
+        DatePicker("Date of Birth", selection: $userData.dateOfBirth, displayedComponents: .date)
+          .padding()
+          .background(Color.gray.opacity(0.2))
+          .cornerRadius(8)
+
+        TextField("Email", text: $userData.email)
+          .padding()
+          .background(Color.gray.opacity(0.2))
+          .cornerRadius(8)
+
+        SecureField("Password", text: $userData.password)
+          .padding()
+          .background(Color.gray.opacity(0.2))
+          .cornerRadius(8)
+
+        NavigationLink(destination: CapybaraInstagramApp().environmentObject(userData), isActive: $showingHome) {
+          Button("Register") {
+            showingHome = true
+          }
+          .foregroundColor(.white)
+          .padding()
+          .background(Color.green)
+          .cornerRadius(8)
         }
-        .padding()
-        .navigationTitle("Capybara Central")
+      }
+      .padding()
+      .background(Color.white)
     }
+  }
 }
 
-struct PostView: View {
-    @State private var image: UIImage?
-    @State private var caption = ""
+// Welcome Screen View
+struct WelcomeView: View {
+  var body: some View {
+    NavigationView {
+      VStack {
+        Text("CapyGram")
+          .font(.largeTitle)
+          .fontWeight(.bold)
+          .foregroundColor(.green)
+          .padding(.bottom)
 
-    var body: some View {
-        VStack {
-            if let image = image {
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            }
+        Text("Developed by Michael Berinshteyn")
+          .font(.subheadline)
+          .foregroundColor(.gray)
+          .padding(.bottom)
 
-            TextField("Caption", text: $caption)
-                .padding()
-
-            Button("Post") {
-                // TODO: Implement posting logic
-            }
-            .padding()
+        Text("@DevMasterMike")
+          .font(.subheadline)
+          .foregroundColor(.gray)
+          .padding(.bottom)
+        
+        NavigationLink(destination: RegistrationView()) {
+          Text("Enter")
             .foregroundColor(.white)
+            .padding()
             .background(Color.green)
             .cornerRadius(8)
         }
-        .padding()
-        .navigationTitle("New Post")
+      }
+      .padding()
+      .background(Color.white)
     }
+  }
 }
 
+// Main App View
+struct CapybaraInstagramApp: View {
+  @EnvironmentObject var userData: UserData
+  @State private var selectedTab = 0
+
+  var body: some View {
+    TabView(selection: $selectedTab) {
+      HomeScreen()
+        .tabItem {
+          Image(systemName: "house.fill")
+          Text("Home")
+        }
+        .tag(0)
+
+      PostView()
+        .tabItem {
+          Image(systemName: "plus.square.fill")
+          Text("Post")
+        }
+        .tag(1)
+
+      SettingsView()
+        .tabItem {
+          Image(systemName: "gear")
+          Text("Settings")
+        }
+        .tag(2)
+    }
+    .accentColor(.green)
+  }
+}
+
+// Home Screen View
+struct HomeScreen: View {
+  var body: some View {
+    ScrollView {
+      LazyVStack {
+        ForEach(0..<10) { _ in
+          CapybaraPostView()
+        }
+      }
+    }
+    .padding()
+    .navigationTitle("Capybara Central")
+  }
+}
+
+// Post View
+struct PostView: View {
+  @State private var image: UIImage?
+  @State private var caption = ""
+
+  var body: some View {
+    VStack {
+      if let image = image {
+        Image(uiImage: image)
+          .resizable()
+          .aspectRatio(contentMode: .fit)
+      }
+
+      TextField("Caption", text: $caption)
+        .padding()
+
+      Button("Post") {
+        // TODO: Implement posting logic
+      }
+      .padding()
+      .foregroundColor(.white)
+      .background(Color.green)
+      .cornerRadius(8)
+    }
+    .padding()
+    .navigationTitle("New Post")
+  }
+}
+
+// Settings View
 struct SettingsView: View {
-    @State private var username = ""
-    @State private var email = ""
-    @State private var notificationsEnabled = false
+  @EnvironmentObject var userData: UserData
 
-    var body: some View {
-        Form {
-            Section {
-                Text("Username")
-                TextField("Enter your username", text: $username)
-            }
+  var body: some View {
+    Form {
+      Section {
+        Text("First Name")
+        TextField("Enter your first name", text: $userData.firstName)
 
-            Section {
-                Text("Email")
-                TextField("Enter your email", text: $email)
-            }
+        Text("Last Name")
+        TextField("Enter your last name", text: $userData.lastName)
 
-            Section {
-                Toggle("Notifications", isOn: $notificationsEnabled)
-            }
-        }
-        .padding()
-        .navigationTitle("Settings")
+        Text("Date of Birth")
+        DatePicker("Enter your date of birth", selection: $userData.dateOfBirth, displayedComponents: .date)
+
+        Text("Email")
+        TextField("Enter your email", text: $userData.email)
+
+        Text("Password")
+        SecureField("Enter your password", text: $userData.password)
+      }
     }
+    .padding()
+    .navigationTitle("Settings")
+  }
 }
 
+// Capybara Post View
 struct CapybaraPostView: View {
-    var body: some View {
-        VStack(alignment: .leading) {
-            HStack {
-                Image("capybara")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 50, height: 50)
-                    .clipShape(Circle())
+  var body: some View {
+    VStack(alignment: .leading) {
+      HStack {
+        Image("capybara")
+          .resizable()
+          .aspectRatio(contentMode: .fit)
+          .frame(width: 50, height: 50)
+          .clipShape(Circle())
 
-                Text("capybara_lover")
-                    .font(.headline)
-            }
+        Text("capybara_lover")
+          .font(.headline)
+      }
 
-            Image("capybara")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+      Image("capybara")
+        .resizable()
+        .aspectRatio(contentMode: .fit)
 
-            Text("Caption")
-                .font(.subheadline)
-                .padding(.top)
+      Text("Caption")
+        .font(.subheadline)
+        .padding(.top)
 
-            HStack {
-                Image(systemName: "heart.fill")
-                Text("100")
+      HStack {
+        Image(systemName: "heart.fill")
+        Text("100")
 
-                Image(systemName: "message.fill")
-                Text("5")
-            }
-            .padding(.top)
-        }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(8)
+        Image(systemName: "message.fill")
+        Text("5")
+      }
+      .padding(.top)
     }
+    .padding()
+    .background(Color.white)
+    .cornerRadius(8)
+  }
 }
 
-import UIKit
-
+// AppDelegate
 class AppDelegate: NSObject, UIApplicationDelegate {
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-        return true
-    }
+  func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+    return true
+  }
 }
 
-
-import SwiftUI
-
+// Main App
 @main
 struct CapybaraInstagramAppApp: App {
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+  @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+  @StateObject var userData = UserData()
 
-    var body: some Scene {
-        WindowGroup {
-            CapybaraInstagramApp()
-        }
+  var body: some Scene {
+    WindowGroup {
+      WelcomeView().environmentObject(userData)
     }
+  }
 }
+
